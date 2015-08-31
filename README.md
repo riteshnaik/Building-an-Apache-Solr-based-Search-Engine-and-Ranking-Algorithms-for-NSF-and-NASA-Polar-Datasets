@@ -154,3 +154,56 @@ For our science question 5, We got the following results:
     􀀀 Keywords.do?KeywordPath=%5BParameters%3A+Topic%3D%27BIOLOGICAL+CLASSIFICATION%27%2C+Term%3D%27ANIMALS%2FVERTEBRATES%27
      %2C+Variable_Level_1%3D%27FISH%27%2C+Variable_Level_2%3D%27RAYFINNED+FISHES%27%5D&Portal=GCMD&MetadataType=0
     􀀀 Freetext.do?Freetext=DIF%2FProject%3AEBA+&KeywordPath=&Portal=eba&MetadataType=0
+
+##Link-Based Algorithm Vs Content-Based Ranking
+
+###How effective the link-based algorithm was compared to the content-based ranking algorithm in light of the scientific questions?
+The scientific questions we have formulated are based on the properties such as ice thickness, global warming, cryosphere, water temperature etc. We have extracted keywords from these properties and performed a query on the documents using solr.
+We observed that the link based algorithm was more effective than the content based in certain cases. In the link-based algorithm which is query independent, the documents are clustered based on properties such as the ones mentioned above. The document having the most number of properties which are common with other document has the highest rank. In content-based algorithm the ranking is done using TFIDF and it is solely based on the keywords passed in the queries. Thus there are cases where the documents having the required properties have not appeared in the result because the exact keyword we queried for was not present in its content. Whereas those documents are present in the clusters associated with the property. Hence, link based gave better results than content-based in scenarios where some documents were overlooked due to the absence of keywords in the content.
+
+###What questions were more appropriate for the link based algorithm compared to the content one?
+Link based is more appropriate when our query contains the words which are present in the features or are similar to the features used during graph construction. After the page rank is performed over the link graph, we get the scores. The document having the most number of features which are also present in other documents has the highest rank. So
+we get a cluster of documents associated with the science keyword. 
+For example,
+suppose our question is based on the change in the thickness in ice. If ice thickness is a feature then we get better results for it compared to content-based. On the other hand content-based algorithm works better if we have a query which is
+very specific. 
+For example, 
+suppose we want to find results for a project named BIOQUIMICA APLICADA. There is a very low possibility of this term to be a feature in link-base algorithm. Where as we would find very relevant results from content-based algorithm.
+
+##Latent Dirichlet Allocation (LDA)
+LDA is an algorithm which automatically finds topics from our crawled data. Every document is expressed as a combination of topics found by LDA. It associates the words in the document with the topics and provides us with a percentage probability of
+how much a document is related to the topic. To implement LDA, we used mahout. The input to the algorithm is the extracted content from all the dumped data. To avoid generation of topics which are common words, we preprocessed the content and removed the stop words. Then we converted all the files into a SequenceFile format using ./mahout seqdirectory. This sequence file is taken as an input to produce tf vectors by using ./mahout seq2sparse. The next step is to invoke the LDA algorithm given the tf vectors as input. But in the latest version of mahout, instead of direct lda command we are suggested to use cvb command. In order to run cvb we first converted the text keys in the vectors to integer keys using ./mahout rowid. We then ran the cvb command giving number of topics as the parameter.
+
+A part of the sample output of topics we found are:
+
+    {continent:0.062253240607493175,ocean:0.04631503190274735,africa:0.04034630800499458
+    ,europe:0.02856882508125656,asia:0.0279616891416276,america:0.02236880590126792,nort
+    h:0.0198336363451713,atlantic:0.019050805417959116,western:0.014697015622096783,pacif
+    ic:0.014228033171683179}
+    {ice:0.014291374660605682,ocean:0.012150009519871425,aquatic:0.012093652335247325,gl
+    acier:0.008230570728051759,arctic:0.008073733950530022,water:0.007911953587256331,pol
+    ar:0.007436174136919549,antarctic:0.007410489895308846,marine:0.006902509674294986,t
+    emperature:0.006509676211788371}
+    
+###What differences you see between task 4(the algorithms) and LDA technique results?
+If the data is non-structured and we have no domain knowledge then LDA works well. This is because it automatically generates the topics and give us an idea of how much documents are based on these topics. But for our data we observe that the features
+generated are not nearly as good as the features being used for link-based algorithm.
+
+##Integrating the relevancy algorithms into Nutch
+
+1. Click on import under the file menu in eclipse.
+2. Under the Git category select projects from Git in the pop up and then click on next.
+3. Next clone URI and then click on next.
+4. Enter the following git repository - https://github.com/apache/nutch.git , in
+   the text box for ‘URI’,and then click on next.
+5. Select all files in branch selection pop up and click next.
+6. Enter the directory where you want the Nutch repository to be stored in the
+   local destination pop-up, and click on next.
+7. Once all the projects download , select on import as general project option and click on next.
+8. Click finish after entering project name.
+9. In the package explorer, you should see a project named nutch.
+10.Now in nutch -> src -> java ->org ->apache ->nutch->scoring folder, you should see a file 
+   named ScoringFilters.java. Here    we should add our link-based algorithm’s code.
+
+##D3 Visualization
+We used the constructed graph to create a json object of clusters of nodes(indexed docs) that had similar score and weighted edges over features extracted. The script createJSON.py creates the required JSON object that can be visualized using force-directed graph (or Curved Links Force Directed Graph) in D3 or using built-in python API to visualized this cluster graph.
