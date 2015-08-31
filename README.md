@@ -32,6 +32,7 @@ Indexing process for SolrIndexing:
 ###Indexing process for Nutch/Tika + SolrIndexing:
 To integrate Nutch/Tika and with Solr we need to make the following changes before indexing:
 ● Add the following fields to schema.xml of solr (by matching them to schema.xml of nutch-trunk):
+
             <field name="digest" type="string" stored="true" indexed="true"/>
             <field name="boost" type="float" stored="true" indexed="true"/>
             <field name="segment" type="string" stored="true" indexed="true"/>
