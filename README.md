@@ -30,39 +30,37 @@ Indexing process for SolrIndexing:
     attr_content&commit=true" -F "myfile=@filename.ext"
 
 ###Indexing process for Nutch/Tika + SolrIndexing:
-To integrate Nutch/Tika and with Solr we need to make the following changes before
-indexing:
-● Add the following fields to schema.xml of solr (by matching them to schema.xml
-of nutch-trunk):
-<field name="digest" type="string" stored="true" indexed="true"/>
-<field name="boost" type="float" stored="true" indexed="true"/>
-<field name="segment" type="string" stored="true" indexed="true"/>
-<field name="host" type="string" stored="true" indexed="true"/>
-<field name="tstamp" type="date" stored="true" indexed="true"/>
-<field name="anchor" type="string" stored="true" indexed="true"
-multiValued="true"/>
-<field name="content" type="text_general" indexed="true" stored="true"
-multiValued="true"/>
-<field name="exactMatch" type="text_exact_match" indexed="true" stored="true"
-multiValued="true"/>
-<copyField source="content" dest="exactMatch"/>
-<fieldType name="text_exact_match" class="solr.TextField"
-positionIncrementGap="100">
-<analyzer type="index">
-<charFilter class="solr.HTMLStripCharFilterFactory"/>
-<tokenizer class="solr.StandardTokenizerFactory"/>
-<!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
-<filter class="solr.ShingleFilterFactory" minShingleSize="3"
-maxShingleSize="3"/>-->
-</analyzer>
-<analyzer type="query">
-<charFilter class="solr.HTMLStripCharFilterFactory"/>
-<tokenizer class="solr.StandardTokenizerFactory"/>
-<!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
-<filter class="solr.ShingleFilterFactory" minShingleSize="3"
-maxShingleSize="3"/>-->
-</analyzer>
-</fieldType>
+To integrate Nutch/Tika and with Solr we need to make the following changes before indexing:
+● Add the following fields to schema.xml of solr (by matching them to schema.xml of nutch-trunk):
+        <field name="digest" type="string" stored="true" indexed="true"/>
+        <field name="boost" type="float" stored="true" indexed="true"/>
+        <field name="segment" type="string" stored="true" indexed="true"/>
+        <field name="host" type="string" stored="true" indexed="true"/>
+        <field name="tstamp" type="date" stored="true" indexed="true"/>
+        <field name="anchor" type="string" stored="true" indexed="true"
+        multiValued="true"/>
+        <field name="content" type="text_general" indexed="true" stored="true"
+        multiValued="true"/>
+        <field name="exactMatch" type="text_exact_match" indexed="true" stored="true"
+        multiValued="true"/>
+        <copyField source="content" dest="exactMatch"/>
+        <fieldType name="text_exact_match" class="solr.TextField"
+        positionIncrementGap="100">
+        <analyzer type="index">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.ShingleFilterFactory" minShingleSize="3"
+        maxShingleSize="3"/>-->
+        </analyzer>
+        <analyzer type="query">
+        <charFilter class="solr.HTMLStripCharFilterFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.ShingleFilterFactory" minShingleSize="3"
+        maxShingleSize="3"/>-->
+        </analyzer>
+        </fieldType>
 ● For field Type = “text_general” add the following line to analyzer type=”index” and
 type =”query”:
 <filter class="solr.PorterStemFilterFactory"/> to enable stemming.
