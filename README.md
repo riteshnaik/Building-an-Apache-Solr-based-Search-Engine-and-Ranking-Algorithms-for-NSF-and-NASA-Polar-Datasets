@@ -26,8 +26,7 @@ Indexing process for SolrIndexing:
 ● First we dump our crawl data and get all the documents, images, audios etc crawled.
 ● Then we used a python script to iterate over all the data and index it in Solr using the curl command: 
 
-  curl"http://localhost:8983/solr/update/extract?literal.id=doc1&uprefix=attr_&fmap.content
-  =attr_content&commit=true" -F "myfile=@filename.ext"
+  curl"http://localhost:8983/solr/update/extract?literal.id=doc1&uprefix=attr_&fmap.content=attr_content&commit=true" -F "myfile=@filename.ext"
 
 ###Indexing process for Nutch/Tika + SolrIndexing:
 To integrate Nutch/Tika and with Solr we need to make the following changes before
