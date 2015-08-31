@@ -103,3 +103,16 @@ To integrate Nutch/Tika and with Solr we need to make the following changes befo
 ● Then use the following command line to index the crawled data to solr:
 
     bin/nutch solrindex http://127.0.0.1:8983/solr/ folder/crawldb -linkdb folder/linkdb folder/segments
+
+##What was easier – Nutch/Tika + SolrIndexing or SolrCell? What did Tika extract in Nutch compared to what SolrCell extracts?
+Solrcell indexing is easier compared to Nutch+tika SolrCell. Tika extracts metadata such as: title, subject, author, keywords, comment, template, lasr_saved, revision_number, last_printed, last_saved, page_count, word_count, character_count, application_name. With SolrCell we have a wide range of metadata that we can extract before indexing. The fields specified in the schema.xml of solr can be used to specify all the features we want. We can add fields by specify the name and setting the values of indexed and stored to “true”.
+
+    <field name="metatag.description" type="text" stored="true" indexed="true"/>
+    <field name="metatag.keywords" type="text" stored="true" indexed="true"/>
+    Eg. <field name="north" type="text" stored="true" indexed="true"/>
+    <field name="south" type="text" stored="true" indexed="true"/>
+
+##Content Based Algorithm
+The content based algorithm is implemented using TFIDF. Given a query, we determine the key terms to be used for the calculation of the TFIDF score of the document. We utilize the TFIDF functionality of solr to rank the documents. But by default solr gives equal weight to all the keywords to calculate the score and uses all the fields. Instead,
+we use function query to construct a more effective query. Through it we can specify which fields should be considered and how much it should contribute to the calculation of the score. We have included during solr indexing additional fields such as start date, end date, east, west, north, south coordinates, description, title, exact match and a couple more. Using these fields we design our function query depending on our science question. For example, q=title:<antarctic>^2 content:<ice> startyear:[2000 TO 2010]^2 is a function query in which we give more importance to the title and startyear by boosting it’s weight. Here we are looking for documents which contain the term ‘antarctic’ in its title, has content related to ‘ice’ and has been recorded between 2000 and 2010. We are using a script to determine the function query based on our science
+question. To make sure that we get effective results we have done the following: stemming, removing stopwords and html stripping.
