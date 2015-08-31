@@ -116,3 +116,41 @@ Solrcell indexing is easier compared to Nutch+tika SolrCell. Tika extracts metad
 The content based algorithm is implemented using TFIDF. Given a query, we determine the key terms to be used for the calculation of the TFIDF score of the document. We utilize the TFIDF functionality of solr to rank the documents. But by default solr gives equal weight to all the keywords to calculate the score and uses all the fields. Instead,
 we use function query to construct a more effective query. Through it we can specify which fields should be considered and how much it should contribute to the calculation of the score. We have included during solr indexing additional fields such as start date, end date, east, west, north, south coordinates, description, title, exact match and a couple more. Using these fields we design our function query depending on our science question. For example, q=title:<antarctic>^2 content:<ice> startyear:[2000 TO 2010]^2 is a function query in which we give more importance to the title and startyear by boosting it’s weight. Here we are looking for documents which contain the term ‘antarctic’ in its title, has content related to ‘ice’ and has been recorded between 2000 and 2010. We are using a script to determine the function query based on our science
 question. To make sure that we get effective results we have done the following: stemming, removing stopwords and html stripping.
+
+For our science question 5, We got the following results:
+
+    Question - What is the impact on glacier hydrology due to Greenland ice sheet melting?
+    Query string - http://localhost:8983/solr/select?q=content:%22glacier%20hydrology%22%20AND%20greenland%20&limit=-1
+    Total results - 14
+    Filenames of top 10 results -
+    􀀀 GrIS_radon_data.html
+    􀀀 GrIS_RADON.html
+    􀀀 radon222.html
+    􀀀 rapid_impact_of_large_scale_greenland_ice_sheet_melting_on_glacier_hydrology_and_meltwater_geochemistry.html
+    􀀀 Greenland_meltwater_microbial_diversity_and_abundance.html
+    􀀀 Solid%20Earth.html
+    􀀀 GrIS_radon_data.txt
+    􀀀 GrIS_RADON.txt
+    􀀀 radon222.txt
+    􀀀 radon222.iso19139
+
+##Link Based Algorithm
+The link based algorithm is designed such that we can find relevancy between documents based on the associated features of the document. The first step is to figure out the features to be used. To do so we extract spatial coordinates, temporal coverage, location keywords, science keywords, ISO topic category and ancillary keywords from all the documents. We have written a python code for extracting most of the features and modified CLAVIN to extract cartographic features. We then construct a graph which represents the documents as nodes and the an edge represents a common feature between two documents. So we get a multi graph as the result. To convert it to a single graph we convert n edges between two documents A and B into a single edge of weight n. Then this graph is fed into the pagerank algorithm. This is done using an API called networkx. We obtain the pagerank scores of the documents and index them into solr. For this purpose we augment the documents with the pagerank score as a new field.
+
+For our science question 5, We got the following results:
+
+    Question - What is the impact on glacier hydrology due to Greenland ice sheet melting?
+    Query string - http://localhost:8983/solr/select?q=content:%22glacier%20hydrology%22%20AND%20greenland%20&limit=-1
+    Total results - 30
+    Filenames of top 10 results -
+    􀀀 GrIS_radon_data.html
+    􀀀 Titles.do?Portal=GCMD&KeywordPath=Locations%7COCEAN%7CPACIFIC+OCEAN%7CEASTERN+PACIFIC+OCEAN&MetadataType=0&Offset=50&l      bnode=mdlb4
+    􀀀 radon222.html
+    􀀀 rapid_impact_of_large_scale_greenland_ice_sheet_melting_on_glacier_hydrology_and_meltwater_geochemistry.html
+    􀀀 Freetext.do?KeywordPath=&Portal=antabif&MetadataType=0&Freetext=DIF%2FIDN_Node%3A+ANTABIF
+    􀀀 radon222.txt
+    􀀀 GrIS_radon_data.txt
+    􀀀 Keywords.do?KeywordPath=%5BParent_DIF%3D%27SCARMarBIN%27%5D&Portal=GCMD&MetadataType=0
+    􀀀 Keywords.do?KeywordPath=%5BParameters%3A+Topic%3D%27BIOLOGICAL+CLASSIFICATION%27%2C+Term%3D%27ANIMALS%2FVERTEBRATES%27
+     %2C+Variable_Level_1%3D%27FISH%27%2C+Variable_Level_2%3D%27RAYFINNED+FISHES%27%5D&Portal=GCMD&MetadataType=0
+    􀀀 Freetext.do?Freetext=DIF%2FProject%3AEBA+&KeywordPath=&Portal=eba&MetadataType=0
