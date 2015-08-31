@@ -20,3 +20,87 @@ graphical coverage, spatial coordinates, temporal coverage, location keywords, s
 3. What is the trend zooplankton grazing rate in the North Pacific Ocean region?
 4. How has ozone depletion caused UV-induced changes impacting the marine life and cryosphere in the antarctic region?
 5. What is the impact on glacier hydrology due to Greenland ice sheet melting?
+
+##Nutch/Tika + SolrIndexing Vs SolrCell
+Indexing process for SolrIndexing:
+● First we dump our crawl data and get all the documents, images, audios etc crawled.
+● Then we used a python script to iterate over all the data and index it in Solr using the curl command: 
+
+  curl"http://localhost:8983/solr/update/extract?literal.id=doc1&uprefix=attr_&fmap.content
+  =attr_content&commit=true" -F "myfile=@filename.ext"
+
+###Indexing process for Nutch/Tika + SolrIndexing:
+To integrate Nutch/Tika and with Solr we need to make the following changes before
+indexing:
+● Add the following fields to schema.xml of solr (by matching them to schema.xml
+of nutch-trunk):
+<field name="digest" type="string" stored="true" indexed="true"/>
+<field name="boost" type="float" stored="true" indexed="true"/>
+<field name="segment" type="string" stored="true" indexed="true"/>
+<field name="host" type="string" stored="true" indexed="true"/>
+<field name="tstamp" type="date" stored="true" indexed="true"/>
+<field name="anchor" type="string" stored="true" indexed="true"
+multiValued="true"/>
+<field name="content" type="text_general" indexed="true" stored="true"
+multiValued="true"/>
+<field name="exactMatch" type="text_exact_match" indexed="true" stored="true"
+multiValued="true"/>
+<copyField source="content" dest="exactMatch"/>
+<fieldType name="text_exact_match" class="solr.TextField"
+positionIncrementGap="100">
+<analyzer type="index">
+<charFilter class="solr.HTMLStripCharFilterFactory"/>
+<tokenizer class="solr.StandardTokenizerFactory"/>
+<!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+<filter class="solr.ShingleFilterFactory" minShingleSize="3"
+maxShingleSize="3"/>-->
+</analyzer>
+<analyzer type="query">
+<charFilter class="solr.HTMLStripCharFilterFactory"/>
+<tokenizer class="solr.StandardTokenizerFactory"/>
+<!--<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+<filter class="solr.ShingleFilterFactory" minShingleSize="3"
+maxShingleSize="3"/>-->
+</analyzer>
+</fieldType>
+● For field Type = “text_general” add the following line to analyzer type=”index” and
+type =”query”:
+<filter class="solr.PorterStemFilterFactory"/> to enable stemming.
+<charFilter class="solr.HTMLStripCharFilterFactory"/> to strip html from
+content
+● Change the unique key from id to url:
+<uniqueKey>url</uniqueKey> change the unique key to url.
+● Make the following changes to solrconfig.conf
+<p></p>
+<p><requestHandler name="/nutch" class="solr.SearchHandler" >
+<lst name="defaults">
+<str name="defType">dismax</str>
+<str name="echoParams">explicit</str>
+<float name="tie">0.01</float>
+<str name="qf">
+content^0.5 anchor^1.0 title^1.2
+</str>
+<str name="pf">
+content^0.5 anchor^1.5 title^1.2 site^1.5
+</str>
+<str name="fl">
+url
+</str>
+<str name="mm">
+2&lt;-1 5&lt;-2 6<90%
+</str>
+<int name="ps">100</int>
+<bool name="hl">true</bool>
+<str name="q.alt">*:*</str>
+<str name="hl.fl">title url content</str>
+<str name="f.title.hl.fragsize">0</str>
+<str name="f.title.hl.alternateField">title</str>
+<str name="f.url.hl.fragsize">0</str>
+<str name="f.url.hl.alternateField">url</str>
+<str name="f.content.hl.fragmenter">regex</str>
+</lst>
+</requestHandler>
+</p>
+Then use the following command line to index the crawled data to solr:
+bin/nutch solrindex http://127.0.0.1:8983/solr/ folder/crawldb -linkdb folder/linkdb
+folder/segments
